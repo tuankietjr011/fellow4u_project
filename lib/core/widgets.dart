@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'constants.dart';
 
-// 1. Widget Header cong mềm mại
+// --- 1. WIDGET HEADER CONG ---
 class CurvedHeader extends StatelessWidget {
   const CurvedHeader({super.key});
 
@@ -13,7 +13,6 @@ class CurvedHeader extends StatelessWidget {
         height: 160,
         width: double.infinity,
         color: primaryColor,
-        // Có thể thêm logo chữ 'b' vào đây nếu muốn, hiện tại để trơn theo yêu cầu
       ),
     );
   }
@@ -24,7 +23,6 @@ class HeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     Path path = Path();
     path.lineTo(0, size.height - 30);
-    // Tạo đường cong lượn nhẹ từ trái qua phải
     path.quadraticBezierTo(
       size.width * 0.35,
       size.height + 15,
@@ -35,12 +33,11 @@ class HeaderClipper extends CustomClipper<Path> {
     path.close();
     return path;
   }
-
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// 2. Custom TextField chuẩn thiết kế
+// --- 2. CUSTOM TEXTFIELD (Đã thêm isDense để UI đẹp hơn) ---
 class CustomTextField extends StatelessWidget {
   final String hintText;
   final String labelText;
@@ -76,11 +73,10 @@ class CustomTextField extends StatelessWidget {
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: const TextStyle(
-              color: hintColor,
-              fontSize: 14,
-              fontWeight: FontWeight.normal,
-            ),
+            hintStyle: const TextStyle(color: hintColor, fontSize: 14),
+            helperText: helperText,
+            helperStyle: const TextStyle(color: hintColor, fontSize: 11),
+            isDense: true, // Thêm cái này để khoảng cách gạch chân sát hơn
             enabledBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: borderColor, width: 1),
             ),
@@ -88,28 +84,26 @@ class CustomTextField extends StatelessWidget {
               borderSide: BorderSide(color: primaryColor, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
-            isDense: true,
           ),
         ),
-        if (helperText != null) ...[
-          const SizedBox(height: 5),
-          Text(
-            helperText!,
-            style: const TextStyle(color: hintColor, fontSize: 11),
-          ),
-        ],
         const SizedBox(height: 20),
       ],
     );
   }
 }
 
-// 3. Nút bấm chính (Primary Button)
+// --- 3. PRIMARY BUTTON (Giữ nguyên vì đã rất tốt) ---
 class PrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
+  final bool isLoading;
 
-  const PrimaryButton({super.key, required this.text, required this.onPressed});
+  const PrimaryButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -117,20 +111,30 @@ class PrimaryButton extends StatelessWidget {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          disabledBackgroundColor: primaryColor.withOpacity(0.6),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
