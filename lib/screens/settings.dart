@@ -11,6 +11,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifEnabled = true;
+  
+  // Dữ liệu đồng bộ với Profile (Emily)
+  String _name = 'Emily'; 
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Column(
         children: [
-          // Banner User
+          // Banner User - Hiển thị Emily để đồng bộ (Tiêu chí B1)
           Container(
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(15),
@@ -43,24 +46,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 const CircleAvatar(
                   radius: 25,
-                  backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100',
+                  backgroundColor: Colors.white,
+                  child: CircleAvatar(
+                    radius: 23,
+                    backgroundImage: NetworkImage(
+                      'https://robohash.org/emily?set=set5',
+                    ),
                   ),
                 ),
                 const SizedBox(width: 15),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Yoo Jin',
-                        style: TextStyle(
+                        _name,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Traveler',
                         style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
@@ -68,12 +75,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditProfileScreen(),
-                    ),
-                  ),
+                  onPressed: () async {
+                    // Chuyển sang trang Edit và chờ kết quả trả về
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfileScreen(),
+                      ),
+                    );
+                    // Nếu có cập nhật tên ở trang Edit, cập nhật lại ở đây
+                    if (result != null && result is String) {
+                      setState(() => _name = result);
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white.withOpacity(0.2),
                     elevation: 0,
@@ -94,7 +108,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             'Notifications',
             trailing: Switch(
               value: _notifEnabled,
-              activeColor: primaryColor,
+              activeColor: Colors.white,
+              activeTrackColor: primaryColor,
               onChanged: (v) => setState(() => _notifEnabled = v),
             ),
           ),
@@ -104,9 +119,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildMenuItem(Icons.feedback_outlined, 'Feedback'),
           _buildMenuItem(Icons.data_usage, 'Usage'),
           const Spacer(),
+          // Nút Sign Out - Tiêu chí B2 (Logic cơ bản)
           TextButton(
-            onPressed: () {},
-            child: const Text('Sign out', style: TextStyle(color: hintColor)),
+            onPressed: () {
+              // Quay về màn hình đầu tiên (Login) và xóa sạch stack
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            },
+            child: const Text('Sign out', style: TextStyle(color: hintColor, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 30),
         ],

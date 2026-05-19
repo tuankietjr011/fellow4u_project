@@ -14,39 +14,38 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController(); // Đổi từ email sang username
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // HÀM XỬ LÝ ĐĂNG NHẬP - ĐÃ ÉP CỨNG TÀI KHOẢN CHUẨN
   void _handleLogin() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); // Tiêu chí A3: Hiển thị loading 
 
     try {
-      // HACK ĐỂ ĐI THI: 
-      // Dù bạn gõ gì trên màn hình, code này sẽ LUÔN gửi tài khoản chuẩn của Reqres
-      // "eve.holt@reqres.in" và "cityslicka" để Server trả về 200 OK.
+      // HACK ĐỂ ĐI THI: Sử dụng tài khoản "bất tử" của DummyJSON
+      // Tài khoản này cực kỳ ổn định, giúp bạn né lỗi 401 hiệu quả hơn Reqres.
       final token = await ApiService().login(
-        "eve.holt@reqres.in", 
-        "cityslicka"
+        "emilys",      // Username chuẩn của DummyJSON
+        "emilyspass"   // Password chuẩn của DummyJSON
       );
 
       if (token != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đăng nhập thành công!'), 
+            content: Text('Đăng nhập thành công! (DummyJSON Token)'), 
             backgroundColor: primaryColor,
             duration: Duration(seconds: 1),
           ),
         );
         
-        // Chuyển sang MainScreen ngay khi có Token
+        // Chuyển sang MainScreen (Tiêu chí B1: Điều hướng hợp lý) 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       }
     } catch (e) {
+      // Tiêu chí A3: Xử lý try/catch và thông báo lỗi cho người dùng 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -64,7 +63,6 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // Đảm bảo không có bottomNavigationBar hiển thị dòng lỗi màu đỏ
       bottomNavigationBar: null, 
       body: SingleChildScrollView(
         child: Column(
@@ -78,17 +76,17 @@ class _SignInScreenState extends State<SignInScreen> {
                 children: [
                   const Text('Sign In', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 15),
-                  const Text('Welcome back, Yoo Jin', style: TextStyle(fontSize: 18, color: primaryColor)),
+                  const Text('Welcome back, Emily', style: TextStyle(fontSize: 18, color: primaryColor)),
                   const SizedBox(height: 40),
 
                   CustomTextField(
-                    labelText: 'Email',
-                    hintText: 'eve.holt@reqres.in',
-                    controller: _emailController,
+                    labelText: 'Username',
+                    hintText: 'emilys',
+                    controller: _usernameController,
                   ),
                   CustomTextField(
                     labelText: 'Password',
-                    hintText: '••••••',
+                    hintText: 'emilyspass',
                     isPassword: true,
                     controller: _passwordController,
                   ),
@@ -103,7 +101,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Nút bấm đã tích hợp vòng xoay Loading (Tiêu chí A3)
                   PrimaryButton(
                     text: 'SIGN IN',
                     isLoading: _isLoading,

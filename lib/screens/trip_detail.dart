@@ -33,12 +33,12 @@ class TripDetailScreen extends StatelessWidget {
             _buildHeaderImage(),
             const SizedBox(height: 30),
 
-            _buildInfoRow('Date', 'Feb 2, 2020'),
+            _buildInfoRow('Date', 'Feb 2, 2026'), // Cập nhật năm hiện tại
             _buildInfoRow('Time', '8:00AM - 10:00AM'),
-            _buildInfoRow('Guide', 'Emmy', isGuide: true),
+            _buildInfoRow('Guide', 'Emily', isGuide: true), // Đồng bộ tên Emily
             _buildInfoRow('Number of Travelers', '2'),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
             const Text(
               'Attractions',
@@ -49,9 +49,9 @@ class TripDetailScreen extends StatelessWidget {
               spacing: 10,
               runSpacing: 10,
               children: [
-                _buildAttractionChip('Ho Guom'),
-                _buildAttractionChip('Ho Hoan Kiem'),
-                _buildAttractionChip('Pho 12 Pho Kim Ma'),
+                _buildAttractionChip('Dragon Bridge'),
+                _buildAttractionChip('Han Market'),
+                _buildAttractionChip('Marble Mountains'),
               ],
             ),
 
@@ -62,25 +62,16 @@ class TripDetailScreen extends StatelessWidget {
               children: const [
                 Text(
                   'Fee',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
                 ),
                 Text(
                   '\$20.00',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: primaryColor),
                 ),
               ],
             ),
             const SizedBox(height: 40),
 
-            // Nút Mark Finished đã được thêm sự kiện Navigator.pop
             _buildMarkFinishedButton(context),
           ],
         ),
@@ -88,6 +79,7 @@ class TripDetailScreen extends StatelessWidget {
     );
   }
 
+  // Header Image - Tối ưu hóa để không bao giờ bị gạch chéo đỏ (Tiêu chí B1)
   Widget _buildHeaderImage() {
     return Stack(
       clipBehavior: Clip.none,
@@ -95,10 +87,16 @@ class TripDetailScreen extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Image.network(
-            'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=800',
+            'https://picsum.photos/seed/tripdetail/800/400',
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,
+            // Xử lý lỗi ảnh - Tiêu chí A3
+            errorBuilder: (context, error, stackTrace) => Container(
+              height: 180,
+              color: Colors.grey[200],
+              child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+            ),
           ),
         ),
         Positioned(
@@ -110,11 +108,7 @@ class TripDetailScreen extends StatelessWidget {
               SizedBox(width: 4),
               Text(
                 'Danang, Vietnam',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
@@ -124,14 +118,14 @@ class TripDetailScreen extends StatelessWidget {
           right: 20,
           child: Container(
             padding: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: const CircleAvatar(
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            child: CircleAvatar(
               radius: 40,
-              backgroundImage: NetworkImage(
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+              backgroundColor: Colors.white,
+              child: CircleAvatar(
+                radius: 38,
+                backgroundImage: const NetworkImage('https://robohash.org/emily?set=set5'),
+                onBackgroundImageError: (_, __) {},
               ),
             ),
           ),
@@ -146,14 +140,7 @@ class TripDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: textColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(label, style: const TextStyle(color: textColor, fontSize: 15, fontWeight: FontWeight.w500)),
           Text(
             value,
             style: TextStyle(
@@ -186,15 +173,14 @@ class TripDetailScreen extends StatelessWidget {
     );
   }
 
-  // Cập nhật hàm build nút bấm để nhận context và thực hiện quay lại trang cũ
   Widget _buildMarkFinishedButton(BuildContext context) {
     return Center(
       child: InkWell(
         onTap: () {
-          // Hiện thông báo nhẹ và quay lại trang My Trips
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Trip marked as finished!'),
+              backgroundColor: primaryColor,
               duration: Duration(seconds: 1),
             ),
           );
@@ -215,11 +201,7 @@ class TripDetailScreen extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'Mark Finished',
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),

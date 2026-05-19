@@ -3,8 +3,24 @@ import '../core/constants.dart';
 import '../core/widgets.dart';
 import 'change_password.dart';
 
-class EditProfileScreen extends StatelessWidget {
+class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  // Tiêu chí A4: Sử dụng Controller để quản lý dữ liệu nhập vào
+  final TextEditingController _firstNameController = TextEditingController(text: 'Emily');
+  final TextEditingController _lastNameController = TextEditingController(text: '');
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +40,14 @@ class EditProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              // Tiêu chí B2: Trả dữ liệu tên mới về màn hình trước
+              String fullName = "${_firstNameController.text} ${_lastNameController.text}".trim();
+              Navigator.pop(context, fullName);
+            },
             child: const Text(
               'SAVE',
-              style: TextStyle(
-                color: primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -39,26 +56,41 @@ class EditProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-              ),
+            // Avatar - Đổi sang RoboHash để fix lỗi gạch chéo đỏ (Tiêu chí B1)
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  child: CircleAvatar(
+                    radius: 47,
+                    backgroundImage: NetworkImage('https://robohash.org/emily?set=set5'),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: const BoxDecoration(color: primaryColor, shape: BoxShape.circle),
+                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                )
+              ],
             ),
             const SizedBox(height: 30),
             Row(
-              children: const [
+              children: [
                 Expanded(
                   child: CustomTextField(
                     labelText: 'First Name',
-                    hintText: 'Yoo',
+                    hintText: 'Emily',
+                    controller: _firstNameController,
                   ),
                 ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 Expanded(
                   child: CustomTextField(
                     labelText: 'Last Name',
-                    hintText: 'Jin',
+                    hintText: 'Last name',
+                    controller: _lastNameController,
                   ),
                 ),
               ],
@@ -73,14 +105,9 @@ class EditProfileScreen extends StatelessWidget {
               child: TextButton(
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChangePasswordScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
                 ),
-                child: const Text(
-                  'Change Password',
-                  style: TextStyle(color: primaryColor),
-                ),
+                child: const Text('Change Password', style: TextStyle(color: primaryColor)),
               ),
             ),
           ],

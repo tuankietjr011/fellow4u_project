@@ -13,6 +13,51 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   int _roleValue = 0; // 0: Traveler, 1: Guide
 
+  // Tiêu chí A4: Sử dụng TextEditingController để quản lý dữ liệu nhập
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPassController = TextEditingController();
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPassController.dispose();
+    super.dispose();
+  }
+
+  void _handleSignUp() {
+    // Logic kiểm tra cơ bản (Tiêu chí B2)
+    if (_passwordController.text != _confirmPassController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mật khẩu xác nhận không khớp!'), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
+
+    if (_passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mật khẩu phải từ 6 ký tự trở lên')),
+      );
+      return;
+    }
+
+    // Hiển thị thông báo thành công và chuyển hướng
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Đăng ký thành công!'), backgroundColor: primaryColor),
+    );
+    
+    // Chuyển sang màn hình Sign In
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,121 +74,73 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 children: [
                   const Text(
                     'Sign Up',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 15),
 
-                  // Radio Buttons
+                  // Lựa chọn Role (Traveler/Guide)
                   Row(
                     children: [
-                      Radio(
-                        value: 0,
-                        groupValue: _roleValue,
-                        activeColor: primaryColor,
-                        onChanged: (val) =>
-                            setState(() => _roleValue = val as int),
-                      ),
-                      const Text(
-                        'Traveler',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      _buildRoleRadio(0, 'Traveler'),
                       const SizedBox(width: 20),
-                      Radio(
-                        value: 1,
-                        groupValue: _roleValue,
-                        activeColor: primaryColor,
-                        onChanged: (val) =>
-                            setState(() => _roleValue = val as int),
-                      ),
-                      const Text(
-                        'Guide',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      _buildRoleRadio(1, 'Guide'),
                     ],
                   ),
                   const SizedBox(height: 10),
 
                   Row(
-                    children: const [
+                    children: [
                       Expanded(
                         child: CustomTextField(
                           labelText: 'First Name',
-                          hintText: 'Yoo',
+                          hintText: 'Emily', // Đồng bộ tên Emily
+                          controller: _firstNameController,
                         ),
                       ),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: CustomTextField(
                           labelText: 'Last Name',
-                          hintText: 'Jin',
+                          hintText: 'Nguyen',
+                          controller: _lastNameController,
                         ),
                       ),
                     ],
                   ),
-                  const CustomTextField(
-                    labelText: 'Country',
-                    hintText: 'Country',
-                  ),
-                  const CustomTextField(
-                    labelText: 'Email',
-                    hintText: 'Type email',
-                  ),
-                  const CustomTextField(
+                  const CustomTextField(labelText: 'Country', hintText: 'Vietnam'),
+                  CustomTextField(labelText: 'Email', hintText: 'emily@gmail.com', controller: _emailController),
+                  CustomTextField(
                     labelText: 'Password',
-                    hintText: 'Type password',
+                    hintText: '••••••',
                     isPassword: true,
+                    controller: _passwordController,
                     helperText: 'Password has more than 6 letters',
                   ),
-                  const CustomTextField(
+                  CustomTextField(
                     labelText: 'Confirm Password',
                     hintText: '••••••',
                     isPassword: true,
+                    controller: _confirmPassController,
                   ),
 
-                  Center(
+                  const SizedBox(height: 10),
+                  const Center(
                     child: Text.rich(
                       TextSpan(
                         text: 'By Signing Up, you agree to our ',
-                        style: const TextStyle(color: hintColor, fontSize: 11),
-                        children: const [
-                          TextSpan(
-                            text: 'Terms & Conditions',
-                            style: TextStyle(color: primaryColor),
-                          ),
+                        style: TextStyle(color: hintColor, fontSize: 11),
+                        children: [
+                          TextSpan(text: 'Terms & Conditions', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 25),
 
-                  PrimaryButton(text: 'SIGN UP', onPressed: () {}),
+                  PrimaryButton(text: 'SIGN UP', onPressed: _handleSignUp),
                   const SizedBox(height: 30),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Already have an account? ",
-                        style: TextStyle(color: hintColor, fontSize: 13),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignInScreen(),
-                          ),
-                        ),
-                        child: const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildSignInLink(),
                   const SizedBox(height: 30),
                 ],
               ),
@@ -151,6 +148,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // --- UI Helpers ---
+
+  Widget _buildRoleRadio(int value, String title) {
+    return Row(
+      children: [
+        Radio(
+          value: value,
+          groupValue: _roleValue,
+          activeColor: primaryColor,
+          onChanged: (val) => setState(() => _roleValue = val as int),
+        ),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+      ],
+    );
+  }
+
+  Widget _buildSignInLink() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Already have an account? ", style: TextStyle(color: hintColor, fontSize: 13)),
+        GestureDetector(
+          onTap: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          ),
+          child: const Text(
+            'Sign In',
+            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+        ),
+      ],
     );
   }
 }
