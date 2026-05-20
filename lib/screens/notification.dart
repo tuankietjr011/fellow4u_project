@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/constants.dart';
+import '../services/api_service.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -9,52 +10,62 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  // Cập nhật dữ liệu với ảnh người thật (Tiêu chí B1: Đồng bộ dữ liệu)
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'id': 1,
-      // Ảnh người nam Châu Á (Đồng bộ với Tuan Tran ở Chat Screen)
-      'avatar': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
-      'name': 'Tuan Tran',
-      'message': 'accepted your request for the trip in Danang, Vietnam on Jan 20, 2026',
-      'date': 'Today',
-      'type': 'accept',
-      'hasButton': false,
-    },
-    {
-      'id': 2,
-      // Ảnh người nữ (Đồng bộ với avatar Emily ở Profile/Chat)
-      'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
-      'name': 'Emily',
-      'message': 'sent you an offer for the trip in Ho Chi Minh, Vietnam on Feb 12, 2026',
-      'date': 'Jan 16',
-      'type': 'offer',
-      'hasButton': false,
-    },
-    {
-      'id': 3,
-      'avatar': 'LOGO',
-      'name': 'System',
-      'message': 'Thanks! Your trip in Danang has been finished. Please leave a review for Tuan Tran.',
-      'date': 'Jan 24',
-      'type': 'review',
-      'hasButton': true,
-    },
-  ];
+  final ApiService _apiService = ApiService();
+  List<dynamic> _notifications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationData();
+  }
+
+  // Gọi API 8 (fetchPosts) để lấy dữ liệu thông báo động
+  Future<void> _loadNotificationData() async {
+    try {
+      final data = await _apiService.fetchPosts();
+      if (mounted) {
+        setState(() {
+          _notifications = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi tải thông báo: $e"), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator(color: primaryColor)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
           _buildHeader(),
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.zero,
-              itemCount: _notifications.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F0F0)),
-              itemBuilder: (context, index) => _buildNotificationItem(_notifications[index]),
+            child: RefreshIndicator(
+              onRefresh: _loadNotificationData,
+              color: primaryColor,
+              child: _notifications.isEmpty
+                  ? const Center(child: Text('Không có thông báo nào.', style: TextStyle(color: hintColor)))
+                  : ListView.separated(
+                      padding: EdgeInsets.zero,
+                      itemCount: _notifications.length,
+                      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                      itemBuilder: (context, index) => _buildNotificationItem(_notifications[index], index),
+                    ),
             ),
           ),
         ],
@@ -71,7 +82,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Image.network(
               'https://picsum.photos/seed/notif/800/400', 
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF26C6A2)),
+              errorBuilder: (context, error, stackTrace) => Container(color: primaryColor),
             ),
           ),
           Positioned.fill(child: Container(color: Colors.black.withOpacity(0.2))),
@@ -96,7 +107,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildNotificationItem(Map<String, dynamic> data) {
+  Widget _buildNotificationItem(Map<String, dynamic> data, int index) {
+    // Luân phiên thay đổi loại thông báo để giao diện nhìn đa dạng icon màu sắc
+    String type = 'accept';
+    if (index % 3 == 1) type = 'offer';
+    if (index % 3 == 2) type = 'review';
+
+    // Đồng bộ lại danh sách avatar người thật đã sửa ở các màn trước
+    final List<String> realPeople = [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200', // Tuan Tran
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200', // Emily
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', // Khai Ho
+    ];
+    String currentAvatar = realPeople[index % realPeople.length];
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -105,18 +129,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Stack(
             clipBehavior: Clip.none,
             children: [
-              data['avatar'] == 'LOGO'
-                  ? const CircleAvatar(
-                      radius: 25, 
-                      backgroundColor: Color(0xFF26C6A2), 
-                      child: Icon(Icons.card_travel, color: Colors.white)
-                    )
-                  : CircleAvatar(
-                      radius: 25, 
-                      backgroundColor: Colors.grey[200],
-                      backgroundImage: NetworkImage(data['avatar']),
-                    ),
-              Positioned(right: -2, bottom: -2, child: _buildBadgeIcon(data['type'])),
+              CircleAvatar(
+                radius: 25, 
+                backgroundColor: Colors.grey[200],
+                backgroundImage: NetworkImage(currentAvatar),
+              ),
+              Positioned(right: -2, bottom: -2, child: _buildBadgeIcon(type)),
             ],
           ),
           const SizedBox(width: 15),
@@ -126,23 +144,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 15, color: Color(0xFF212121), height: 1.4),
+                    style: const TextStyle(fontSize: 15, color: Colors.black, height: 1.4, fontFamily: 'Roboto'),
                     children: [
-                      if (data['name'] != 'System')
-                        TextSpan(text: '${data['name']} ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: data['message']),
+                      TextSpan(
+                        text: 'User_${data['userId']} ', 
+                        style: const TextStyle(fontWeight: FontWeight.bold)
+                      ),
+                      TextSpan(text: data['title']), // Nội dung tiêu đề động từ API
                     ],
                   ),
                 ),
                 const SizedBox(height: 5),
-                Text(data['date'], style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)),
-                if (data['hasButton'])
+                const Text('Just now', style: TextStyle(color: hintColor, fontSize: 13)),
+                if (type == 'review')
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF26C6A2),
+                        backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         elevation: 0,
                       ),

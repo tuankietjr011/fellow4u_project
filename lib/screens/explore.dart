@@ -34,7 +34,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       if (mounted) {
         setState(() {
           _guides = results[0];
-          _photos = results[1];
+          _photos = results[1]; 
           _isLoading = false;
         });
       }
@@ -60,6 +60,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: RefreshIndicator(
         onRefresh: _loadAllData,
+        color: primaryColor,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,9 +68,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
               const _HeaderSection(),
               const SizedBox(height: 10),
               _TopJourneysSection(photos: _photos),
-              _BestGuidesSection(guides: _guides),
-              _TopExperiencesSection(photos: _photos),
-              _FeaturedToursSection(photos: _photos),
+              _BestGuidesSection(guides: _guides), 
+              _TopExperiencesSection(photos: _photos), 
+              _FeaturedToursSection(photos: _photos), 
               const SizedBox(height: 30),
             ],
           ),
@@ -92,7 +93,7 @@ class _HeaderSection extends StatelessWidget {
           width: double.infinity,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: NetworkImage('https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?auto=format&fit=crop&q=80&w=800'),
+              image: NetworkImage('https://picsum.photos/800/400?random=99'), // Đổi sang link bất tử
               fit: BoxFit.cover,
             ),
           ),
@@ -137,26 +138,34 @@ class _TopJourneysSection extends StatelessWidget {
             height: 220,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: photos.length > 5 ? 5 : photos.length,
+              itemCount: photos.length,
               itemBuilder: (context, index) {
                 final item = photos[index];
+                // Sử dụng hàm sinh link Picsum động theo ID, triệt tiêu 100% lỗi 404
+                final int id = item['id'] ?? index;
+                final String imgUrl = 'https://picsum.photos/id/${(id + 10) % 50}/400/300';
+
                 return Container(
                   width: 160,
                   margin: const EdgeInsets.only(right: 15),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5)]),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                         child: Image.network(
-                          'https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&q=80&w=400', 
+                          imgUrl, 
                           height: 120, width: double.infinity, fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(height: 120, color: Colors.grey[200]),
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 120, color: Colors.grey[300],
+                            child: const Icon(Icons.image, color: Colors.grey),
+                          ),
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10),
-                        child: Text(item['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        child: Text(item['title'] ?? 'No Title', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
                       ),
                     ],
                   ),
@@ -170,7 +179,7 @@ class _TopJourneysSection extends StatelessWidget {
   }
 }
 
-// 3. Best Guides - ĐÃ CẬP NHẬT ẢNH NGƯỜI THẬT
+// 3. Best Guides
 class _BestGuidesSection extends StatelessWidget {
   final List<dynamic> guides;
   const _BestGuidesSection({required this.guides});
@@ -185,24 +194,27 @@ class _BestGuidesSection extends StatelessWidget {
           const Text('Best Guides', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 15),
           SizedBox(
-            height: 220,
+            height: 190,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: guides.length,
               itemBuilder: (context, index) {
-                final guide = guides[index];
-                
-                // Danh sách ảnh người thật từ Unsplash
-                final List<String> realPeople = [
-                  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
-                  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
-                  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
-                ];
-                final avatarUrl = realPeople[index % realPeople.length];
+                final guide = guides[index]; 
+                String fullName = guide.name; 
+                if (fullName.isEmpty || fullName == 'No Name') {
+                  fullName = 'Local Guide';
+                }
+
+                // Cấu hình link ảnh avatar bất tử, không lo sập link
+                final String avatarUrl = 'https://picsum.photos/id/${(index + 60) % 100}/200/200';
 
                 return GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GuideDetailScreen(name: guide.name, location: guide.email, avatar: avatarUrl))),
+                  onTap: () => Navigator.push(
+                    context, 
+                    MaterialPageRoute(
+                      builder: (context) => GuideDetailScreen(name: fullName, location: guide.email, avatar: avatarUrl)
+                    )
+                  ),
                   child: Container(
                     width: 140,
                     margin: const EdgeInsets.only(right: 15),
@@ -210,12 +222,12 @@ class _BestGuidesSection extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(avatarUrl, height: 140, width: 140, fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 120)),
+                          child: Image.network(avatarUrl, height: 120, width: 120, fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 100)),
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          guide.name, 
+                          fullName, 
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), 
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -253,26 +265,40 @@ class _TopExperiencesSection extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 20),
-            itemCount: 5,
+            itemCount: photos.length, 
             itemBuilder: (context, index) {
+              final item = photos[index];
+              final int id = item['id'] ?? index;
+              // Ép sinh link ảnh phong cảnh ngẫu nhiên chất lượng cao từ Picsum, chống lỗi 404 tuyệt đối
+              final String imgUrl = 'https://picsum.photos/id/${(id + 15) % 50}/500/300';
+              final String title = item['title'] ?? 'Local Experience';
+
               return Container(
                 width: 260,
                 margin: const EdgeInsets.only(right: 15),
-                decoration: BoxDecoration(
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(15),
-                  image: DecorationImage(
-                    image: NetworkImage('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=500'),
-                    fit: BoxFit.cover,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Image.network(
+                          imgUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300]),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withOpacity(0.8)]),
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          alignment: Alignment.bottomLeft,
+                          child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withOpacity(0.8)]),
-                  ),
-                  padding: const EdgeInsets.all(15),
-                  alignment: Alignment.bottomLeft,
-                  child: const Text('Scuba Diving in Da Nang', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               );
             },
@@ -301,41 +327,63 @@ class _FeaturedToursSection extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: 3,
+          itemCount: photos.length, 
           itemBuilder: (context, index) {
-            final List<String> tourImages = [
-              'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=600',
-              'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&q=80&w=600',
-              'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&q=80&w=600',
-            ];
+            final photoItem = photos[index];
+            final int id = photoItem['id'] ?? index;
+            // Thay thế bằng link ảnh phong cảnh du lịch sống mãi mãi
+            final String currentImg = 'https://picsum.photos/id/${(id + 30) % 50}/600/400';
+            final String dynamicPrice = '\$${photoItem['price'] ?? '35.00'}';
+            final String location = photoItem['location'] ?? 'Vietnam';
 
             return GestureDetector(
               onTap: () => Navigator.push(
                 context, 
                 MaterialPageRoute(
                   builder: (context) => TourDetailScreen( 
-                    title: 'Da Nang City Adventure', 
-                    price: '\$400.00', 
-                    imgUrl: tourImages[index % tourImages.length]
+                    title: photoItem['title'] ?? 'Tour', 
+                    price: dynamicPrice, 
+                    imgUrl: currentImg
                   )
                 )
               ),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)]),
                 child: Column(
                   children: [
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                      child: Image.network(tourImages[index % tourImages.length], height: 180, width: double.infinity, fit: BoxFit.cover),
+                      child: Image.network(
+                        currentImg, 
+                        height: 180, width: double.infinity, fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 180, color: Colors.grey[300],
+                          child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                        ),
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(15),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Gold Bridge Adventure', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)), Text('Vietnam', style: TextStyle(color: primaryColor, fontSize: 12))]),
-                          Text('\$400.00', style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start, 
+                              children: [
+                                Text(
+                                  photoItem['title'] ?? 'Tour Title', 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ), 
+                                Text(location, style: const TextStyle(color: primaryColor, fontSize: 12))
+                              ]
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(dynamicPrice, style: const TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 18)),
                         ],
                       ),
                     )

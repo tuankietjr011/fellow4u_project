@@ -14,20 +14,29 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  final TextEditingController _usernameController = TextEditingController(); // Đổi từ email sang username
-  final TextEditingController _passwordController = TextEditingController();
+  // Điền sẵn tài khoản mẫu của DummyJSON để bấm phát ăn ngay khi demo
+  final TextEditingController _usernameController = TextEditingController(text: 'emilys'); 
+  final TextEditingController _passwordController = TextEditingController(text: 'emilyspass');
   bool _isLoading = false;
 
   void _handleLogin() async {
-    setState(() => _isLoading = true); // Tiêu chí A3: Hiển thị loading 
+    final String usernameInput = _usernameController.text.trim();
+    final String passwordInput = _passwordController.text.trim();
+
+    if (usernameInput.isEmpty || passwordInput.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập đầy đủ Username và Password!'),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true); 
 
     try {
-      // HACK ĐỂ ĐI THI: Sử dụng tài khoản "bất tử" của DummyJSON
-      // Tài khoản này cực kỳ ổn định, giúp bạn né lỗi 401 hiệu quả hơn Reqres.
-      final token = await ApiService().login(
-        "emilys",      // Username chuẩn của DummyJSON
-        "emilyspass"   // Password chuẩn của DummyJSON
-      );
+      final token = await ApiService().login(usernameInput, passwordInput);
 
       if (token != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -38,14 +47,12 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
         );
         
-        // Chuyển sang MainScreen (Tiêu chí B1: Điều hướng hợp lý) 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       }
     } catch (e) {
-      // Tiêu chí A3: Xử lý try/catch và thông báo lỗi cho người dùng 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -63,7 +70,6 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: null, 
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

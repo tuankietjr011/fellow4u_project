@@ -16,6 +16,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Tiêu chí A4: Sử dụng TextEditingController để quản lý dữ liệu nhập
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController(); // ĐÃ THÊM MỚI
+  final TextEditingController _countryController = TextEditingController(text: 'Vietnam'); // ĐÃ THÊM MỚI (Mặc định Vietnam)
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
@@ -24,6 +26,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _usernameController.dispose(); // ĐÃ THÊM MỚI
+    _countryController.dispose();   // ĐÃ THÊM MỚI
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPassController.dispose();
@@ -31,7 +35,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleSignUp() {
-    // Logic kiểm tra cơ bản (Tiêu chí B2)
+    // Logic kiểm tra cơ bản đầu vào trống (Tiêu chí B2)
+    if (_usernameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username không được để trống!'), backgroundColor: Colors.orangeAccent),
+      );
+      return;
+    }
+
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email không được để trống!'), backgroundColor: Colors.orangeAccent),
+      );
+      return;
+    }
+
     if (_passwordController.text != _confirmPassController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mật khẩu xác nhận không khớp!'), backgroundColor: Colors.redAccent),
@@ -107,8 +125,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ],
                   ),
-                  const CustomTextField(labelText: 'Country', hintText: 'Vietnam'),
-                  CustomTextField(labelText: 'Email', hintText: 'emily@gmail.com', controller: _emailController),
+                  
+                  // ĐÃ SỬA: Đưa controller vào ô nhập Country
+                  CustomTextField(
+                    labelText: 'Country', 
+                    hintText: 'Vietnam',
+                    controller: _countryController,
+                  ),
+                  
+                  CustomTextField(
+                    labelText: 'Email', 
+                    hintText: 'emily@gmail.com', 
+                    controller: _emailController
+                  ),
+                  
+                  // ĐÃ THÊM MỚI: Ô nhập Username đồng bộ hệ thống
+                  CustomTextField(
+                    labelText: 'Username', 
+                    hintText: 'emilys', 
+                    controller: _usernameController,
+                  ),
+                  const SizedBox(height: 15),
+
                   CustomTextField(
                     labelText: 'Password',
                     hintText: '••••••',
